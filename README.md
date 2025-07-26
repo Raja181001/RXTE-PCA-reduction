@@ -18,7 +18,8 @@ The author does not claim originality for the core functionalities implemented i
 
 # Prerequisites
 
-- [HEASoft](https://heasarc.gsfc.nasa.gov/lheasoft/) installed and configured
+- HEASoft v6.32-v6.35.2, MOST RECENT VERSION RECOMMENDED (v6.35.2 as of 2025-05-22) https://heasarc.gsfc.nasa.gov/docs/software/lheasoft/
+- Local CALDB setup https://heasarc.gsfc.nasa.gov/docs/heasarc/caldb/install.html#tth_sEc2.1 (https://heasarc.gsfc.nasa.gov/FTP/caldb/software/tools/caldb_setup_files.tar.Z)
 - Bash shell
 
 # Tested on
