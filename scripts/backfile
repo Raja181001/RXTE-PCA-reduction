@@ -1,0 +1,37 @@
+#!/usr/bin/env python
+
+import os
+import sys
+from astropy.io import fits
+
+def modify_backfile_in_fits(file_path):
+    # Check if the file exists
+    if not os.path.exists(file_path):
+        print(f"The file '{file_path}' does not exist.")
+        sys.exit(1)
+
+    try:
+        # Open the FITS file
+        with fits.open(file_path, mode='update') as hdul:
+            # Check if the SPECTRUM extension exists
+            for hdu in hdul:
+                if hdu.header.get('EXTNAME') == 'SPECTRUM':
+                    # Modify the BACKFILE keyword
+                    hdu.header['BACKFILE'] = 'none'
+                    print(f"Modified BACKFILE in {file_path}")
+                    break
+            else:
+                print(f"No SPECTRUM extension found in {file_path}")
+            # Save changes to the FITS file
+            hdul.flush()
+    except Exception as e:
+        print(f"Error modifying {file_path}: {e}")
+
+def main():
+    # Get the file path from the user
+    file_path = input("Enter the path to the FITS file: ").strip()
+    modify_backfile_in_fits(file_path)
+
+if __name__ == "__main__":
+    main()
+

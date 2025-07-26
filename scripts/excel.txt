@@ -1,0 +1,36 @@
+directories=$(find . -maxdepth 1 -type d -name "*result" -printf "%f\n")
+
+for directory in $directories; do
+    input_file="${directory}/temp1.txt"
+    # Initialize a counter
+    line_number=0
+
+    # Read each line from the input file
+    while IFS= read -r line; do
+        ((line_number++))  # Increment the line number counter
+
+        # Check if the line is equal to "========================================================================"
+        if [ "$line" = "========================================================================" ]; then
+             modelline=$line_number
+        fi
+    done < "$input_file"
+    
+    start_line=$((modelline+4))
+    end_line=$((modelline+12))
+    other_line=$((modelline+18))
+    other_line1=$((modelline+19))
+    sed -n -e "${start_line},${end_line}p" -e "${other_line}p" -e "${other_line1}p" ${directory}/temp1.txt > outputin.txt
+    echo "$directory" > outputmid.txt
+    cut -c 44-55 outputin.txt|tr -d " thedgr" >> outputmid.txt
+    input_file="outputmid.txt"
+    output_file="details.csv"
+
+    # Concatenate every line with commas and save to the output file
+    while IFS= read -r line; do
+        echo -n "$line," >> "$output_file"
+    done < "$input_file"
+
+    # Remove the trailing comma and add \n from the last line
+    sed -i 's/,$/\n/' "$output_file"
+
+done

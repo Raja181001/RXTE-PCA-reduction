@@ -1,0 +1,65 @@
+#!/bin/bash
+
+# Loop through directories with names containing only numbers and three dashes
+for dir in [0-9]*-*-*-*; do
+    # Check if it's a directory
+    if [ -d "$dir" ]; then
+        cd "$dir"
+
+        # Define the infiles and orbitfile based on the criteria
+        infile1=$(find . -name '*xwtw2po_cl.evt')
+        infile2=$(find . -name '*xpcw3po_cl.evt')
+        infile3=$(find . -name '*pat.fits.gz')
+        infile4=$(find . -name '*hdtc.hk')
+        orbitfile=$(find . -name '*sao.fits.gz')
+
+        # Open a new gnome-terminal and run the barycorr commands
+        gnome-terminal -- bash -c "
+        barycorr infile=${infile1} outfile=po_cl_bary.evt orbitfiles=${orbitfile} clobber=yes;
+        barycorr infile=${infile2} outfile=st_cl_bary.evt   orbitfiles=${orbitfile} clobber=yes;
+        barycorr infile=${infile4} outfile=housekeeping_bary.hk orbitfiles=${orbitfile} clobber=yes;
+        barycorr infile=${infile3} outfile=attitude_bary_pat.fits.gz orbitfiles=${orbitfile} clobber=yes;"
+
+        # Change back to the parent directory
+        cd ..
+    fi
+done
+set expr="(ELV > 4) && (OFFSET < 0.1) && (NUM_PCU_ON > 0) && .NOT. ISNULL(ELV) && (NUM_PCU_ON < 6)"
+
+  maketime infile=93027-01-02-00-r/FP_1bb82c84-1bb86758.xfl outfile=good.gti expr="$expr" \
+     value=VALUE time=TIME prefr=0.5 postfr=0.5 compact=NO clobber=YES
+     
+  pcaextspect2 \
+    src_infile=@93027-01-02-00-r/FP_dtstd2.lis \
+    bkg_infile=@93027-01-02-00-r/FP_dtbkg2.lis \
+    src_phafile=src.pha bkg_phafile=bkg.pha \
+    gtiandfile=good.gti \
+    filtfile=@93027-01-02-00-r/FP_xtefilt.lis \
+    respfile=src.rsp \
+    pculist=ALL layerlist=ALL
+    
+  pcaextlc2 \
+    src_infile=@93027-01-02-00-r/FP_dtstd2.lis \
+    bkg_infile=@93027-01-02-00-r/FP_dtbkg2.lis \
+    outfile=all.lc \
+    gtiandfile=good.gti \
+    pculist=ALL layerlist=ALL binsz=16
+
+dir="93027-01-02-03-r"
+ 
+pcaextspect2 \
+    src_infile=@${dir}/FP_dtstd2.lis \
+    bkg_infile=@${dir}/FP_dtbkg2.lis \
+    src_phafile=src.pha bkg_phafile=bkg.pha \
+    gtiandfile=good.gti \
+    filtfile=@${dir}/FP_xtefilt.lis \
+    respfile=src.rsp \
+    pculist=ALL layerlist=ALL
+
+
+pcaextlc2 \
+    src_infile=@${dir}/FP_dtstd2.lis \
+    bkg_infile=@${dir}/FP_dtbkg2.lis \
+    outfile=all.lc \
+    gtiandfile=good.gti \
+    pculist=ALL layerlist=ALL binsz=16

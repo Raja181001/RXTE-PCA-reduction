@@ -1,0 +1,58 @@
+#!/bin/bash
+
+log_file="xselect_process.log"
+: > "$log_file"  # Clear previous log
+
+for obsid_dir in [0-9]*-*; do
+    if [[ -d "$obsid_dir/pca" && -f "$obsid_dir/fits_files.god" ]]; then
+        echo "[INFO] Processing: $obsid_dir" >> "$log_file"
+        cd "$obsid_dir/pca" || continue
+
+        # Collect all FS4f filenames
+        event_files=()
+        while IFS= read -r path; do
+            fs_file=$(basename "$path")
+            suffix="${fs_file#FS4f_}"
+            event_file="SE7_${suffix}.evt.gz"
+            if [[ -f "$event_file" ]]; then
+                event_files+=("$event_file")
+            else
+                echo "[WARN] Missing event file: $event_file" >> "../../$log_file"
+            fi
+        done < "../fits_files.god"
+
+        # Skip if no files found
+        if [[ ${#event_files[@]} -eq 0 ]]; then
+            echo "[SKIP] No valid event files found for $obsid_dir" >> "../../$log_file"
+            cd - > /dev/null
+            continue
+        fi
+
+        # Create xselect script
+        script_file="xsel_input.txt"
+        {
+            echo "xsel_session"
+            echo "read event ${event_list[0]}"
+            echo "./"
+            echo "yes"
+            for ((i = 1; i < ${#event_list[@]}; i++)); do
+                echo "read event ${event_list[i]}"
+            done
+            echo "extract event"
+            echo "save event combine_event.evt"
+            echo "exit"
+            echo "no"
+        } > "$script_file"
+
+        # Run xselect quietly
+        xselect < "$script_file" > xsel_output.log 2>&1
+        echo "[DONE] $obsid_dir complete" >> "../../$log_file"
+
+        # Cleanup
+        rm -f "$script_file" xsel_output.log
+        cd - > /dev/null
+    else
+        echo "[SKIP] $obsid_dir: Missing 'pca' or 'fits_files.god'" >> "$log_file"
+    fi
+done
+

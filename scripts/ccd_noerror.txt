@@ -1,0 +1,55 @@
+#!/bin/bash
+
+# Get the list of directories ending with "results"
+directories=$(find . -maxdepth 1 -type d -name "*result" -printf "%f\n")
+curr=$(pwd)
+
+# Loop through all the identified directories
+for directory in $directories; do
+    echo "[INFO] Processing directory: $directory"
+
+    # Define color file names
+    color1_file="color31.lc"
+    color2_file="color32.lc"
+    color3_file="color33.lc"
+
+    # Construct full paths for the color files
+    color1_path="${curr}/${directory}/${color1_file}"
+    color2_path="${curr}/${directory}/${color2_file}"
+    color3_path="${curr}/${directory}/${color3_file}"
+
+    # Check if all the required files exist
+    if [[ -f "$color1_path" && -f "$color2_path" && -f "$color3_path" ]]; then
+        echo "[INFO] All required color files exist in $directory"
+
+        # Create the content for the lcurve script
+        script_content="4
+${color1_file}
+${color3_file}
+${color1_file}
+${color2_file}
+-
+16
+152824
+out
+yes
+/xw
+1
+ma 5 on 1..9
+error off
+hardcopy ccd_noerror.gif/gif
+q"
+
+        # Save the script content to a file
+        script_file="${curr}/${directory}/lcurve_script.txt"
+        echo "$script_content" > "$script_file"
+
+        # Run the lcurve command in a new terminal
+        gnome-terminal --working-directory="${curr}/${directory}" -- bash -c "lcurve < ${script_file} | tee lcurve_output.txt"
+        echo "[INFO] Created GIF and lcurve output in $directory"
+    else
+        # Log a warning if any of the required files are missing
+        echo "[WARNING] Missing one or more required color files in $directory"
+    fi
+done
+

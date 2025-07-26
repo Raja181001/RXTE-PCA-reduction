@@ -1,0 +1,50 @@
+#!/bin/bash
+
+# Get the list of directories ending with "results"
+directories=$(find . -maxdepth 1 -type d -name "*results" -printf "%f\n")
+
+# Define ranges for each iteration
+range1="0-13"
+range2="14-35"
+range3="36-255"
+
+# Iterate over the directories
+for directory in $directories; do
+    cd $directory
+    mkdir -p Analysis
+    cd ..
+
+    # Run the script 3 times with different event names
+    for i in {1..3}; do
+        event_name="color${i}"
+        range_var="range${i}"
+
+        # Create a script for each directory
+        script_content="@${directory}/fits_files.god
+-
+${directory}/Analysis/good.gti
+${directory}/Analysis/${event_name}
+bitmask
+TIME
+Event
+0.004
+LIGHTCURVE
+RATE
+SUM
+INDEF
+INDEF
+INDEF
+INDEF
+INDEF
+${!range_var}
+INDEF"
+
+        script_file="${directory}/scriptpower_${i}.txt"
+        echo "$script_content" > "$script_file"
+
+        # Execute saextrct using the generated script
+        seextrct < "$script_file"
+
+        echo "seextrct executed for directory: $directory, iteration: $i"
+    done
+done

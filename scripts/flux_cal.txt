@@ -1,0 +1,14 @@
+directories=$(find . -maxdepth 1 -type d -name "*result" -printf "%f\n")
+curr=$(pwd)
+for directory in $directories; do
+    # Create a script for each directory
+    script_content="@${curr}/${directory}/rxte_nth_v1.xcm
+fit 1000
+flux 3. 20."
+
+    script_file="${curr}/${directory}/script1.txt"
+    echo "$script_content" > "$script_file"
+    cd ${directory}
+    xspec < $script_file | tee temp1.txt
+    cd ${curr}
+done
