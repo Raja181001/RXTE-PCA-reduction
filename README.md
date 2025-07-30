@@ -26,3 +26,16 @@ The author does not claim originality for the core functionalities implemented i
 
 - Fedora Linux 42 and earlier version with HEASoft 6.32
 - RXTE-PCA data from HEASARC
+
+# How to use 
+
+Clone or download this repository and save the scripts somewhere in your system, for example:
+
+```bash
+mkdir -p $HOME/rxte-tools/scripts
+cd $HOME/rxte-tools
+git clone https://github.com/rajas-code/rxte-pca-reduction.git
+
+export PATH="$HOME/rxte-tools/rxte-pca-reduction/scripts:$PATH"
+
+bash scripts/lcstd1.sh
